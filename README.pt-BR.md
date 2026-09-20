@@ -179,7 +179,7 @@ Aplicar estilos, copiar seleções e inserir objetos usa e substitui o conteúdo
 
 ## Texto e fórmulas LaTeX
 
-**`t` — texto editável:** abre Neovim dentro do Kitty. Escreva, salve e feche o editor com `:wq`; o conteúdo será inserido como texto no Inkscape. Comandos LaTeX permanecem literais nesse modo.
+**`t` — texto editável:** abre Neovim dentro do Kitty. Com a regra de editor do Hyprland fornecida no projeto instalada, ele abre em uma janela flutuante pequena e centralizada (800 × 300 pixels). Escreva, salve e feche o editor com `:wq`; o conteúdo será inserido como texto no Inkscape. Comandos LaTeX permanecem literais nesse modo.
 
 **`Shift+t` — fórmula renderizada:** abre o mesmo editor e compila o conteúdo com `pdflatex`, convertendo o PDF em SVG com `pdf2svg`. Por exemplo:
 
@@ -229,7 +229,7 @@ hl.window_rule({
 })
 ```
 
-Recarregue a configuração com `hyprctl reload`. Para usar o workspace 6, troque `"5"` por `"6"`. A regra corresponde às janelas do Inkscape, inclusive às abertas fora deste lançador.
+Recarregue a configuração com `hyprctl reload`. Para usar o workspace 6, troque `"5"` por `"6"`. A regra de workspace corresponde às janelas do Inkscape, inclusive às abertas fora deste lançador. O arquivo de exemplo também inclui uma regra separada para `kitty-figure-editor`, que torna o editor flutuante com 800 × 300 pixels. Carregue as duas regras para ativar esse comportamento.
 
 **Essa configuração é opcional e não é instalada automaticamente ao clonar o fork.** Ela define o destino de novas janelas; as já abertas precisam ser movidas ou reabertas. Consulte a [documentação de regras de janelas do Hyprland](https://wiki.hypr.land/Configuring/Basics/Window-Rules/) para adaptar a regra à sua versão.
 
@@ -244,7 +244,13 @@ import subprocess
 
 
 def open_editor(filename):
-    subprocess.run(["kitty", "-e", "nvim", str(filename)], check=True)
+    subprocess.run([
+        "kitty", "--class", "kitty-figure-editor",
+        "--override", "remember_window_size=no",
+        "--override", "initial_window_width=800",
+        "--override", "initial_window_height=300",
+        "-e", "nvim", str(filename),
+    ], check=True)
 
 
 config = {

@@ -4,7 +4,23 @@ from pathlib import Path
 
 
 def open_editor(filename):
-    subprocess.run(["kitty", "-e", "nvim", str(filename)], check=True)
+    subprocess.run(
+        [
+            "kitty",
+            "--class",
+            "kitty-figure-editor",
+            "--override",
+            "remember_window_size=no",
+            "--override",
+            "initial_window_width=800",
+            "--override",
+            "initial_window_height=300",
+            "-e",
+            "nvim",
+            str(filename),
+        ],
+        check=True,
+    )
 
 
 def latex_document(latex):
@@ -49,7 +65,10 @@ def import_file(name, path):
     return module
 
 
-CONFIG_PATH = Path(os.environ.get("XDG_CONFIG_HOME", str(Path.home() / ".config"))) / "inkscape-shortcut-manager"
+CONFIG_PATH = (
+    Path(os.environ.get("XDG_CONFIG_HOME", str(Path.home() / ".config")))
+    / "inkscape-shortcut-manager"
+)
 
 if (CONFIG_PATH / "config.py").exists():
     userconfig = import_file("user_shortcut_config", CONFIG_PATH / "config.py").config
