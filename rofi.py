@@ -1,30 +1,21 @@
 import subprocess
 
-def rofi(prompt, options, rofi_args=[], fuzzy=True):
-    optionstr = '\n'.join(option.replace('\n', ' ') for option in options)
-    args = ['rofi', '-sort', '-no-levenshtein-sort']
+
+def rofi(prompt, options, rofi_args=None, fuzzy=True):
+    args = ['rofi', '-dmenu', '-p', prompt, '-format', 's', '-i']
     if fuzzy:
         args += ['-matching', 'fuzzy']
-    args += ['-dmenu', '-p', prompt, '-format', 's', '-i']
-    args += rofi_args
-    args = [str(arg) for arg in args]
-
-
-    result = subprocess.run(args, input=optionstr, stdout=subprocess.PIPE, universal_newlines=True)
-    returncode = result.returncode
-    stdout = result.stdout.strip()
-
-    selected = stdout.strip()
+    args += list(rofi_args or [])
+    result = subprocess.run([str(arg) for arg in args],
+                            input='\n'.join(opt.replace('\n', ' ') for opt in options),
+                            capture_output=True, text=True)
+    selected = result.stdout.strip()
+    if result.returncode == 1:
+        return -1, -1, ''
+    if result.returncode != 0:
+        raise RuntimeError(f'Rofi falhou ({result.returncode}): {result.stderr.strip()}')
     try:
         index = [opt.strip() for opt in options].index(selected)
     except ValueError:
         index = -1
-
-    if returncode == 0:
-        key = 0
-    elif returncode == 1:
-        key = -1
-    elif returncode > 9:
-        key = returncode - 9
-
-    return key, index, selected
+    return 0, index, selected

@@ -1,70 +1,66 @@
+import time
 from Xlib import X, XK
 
 from clipboard import copy
 from constants import TARGET
+from config import config
 from vim import open_vim
 import text
 import styles
 
-# Set of pressed keys
-pressed = set()
+STYLE_KEYS = set('sadghxebfw')
 
 
-# This is a list of received events that haven't been handled yet.
-# Only when the user releases a key, the script knows what it should do.
-# Then it either discards the preceding events, or replays them
-events = []
-
-def event_to_string(self, event):
+def event_to_string(self, event, char=None):
     mods = []
-    if event.state & X.ShiftMask:
-        mods.append('Shift')
-
-    if event.state & X.ControlMask:
-        mods.append('Control')
-
-    keycode = event.detail
-    keysym = self.disp.keycode_to_keysym(keycode, 0)
-    char = XK.keysym_to_string(keysym)
-
-    return ''.join(mod + '+' for mod in mods) + (char if char else '?')
+    for mask, name in ((X.ShiftMask, 'Shift'), (X.ControlMask, 'Control'),
+                       (X.Mod1Mask, 'Alt'), (X.Mod4Mask, 'Super'), (X.Mod5Mask, 'AltGr')):
+        if event.state & mask:
+            mods.append(name)
+    char = char or XK.keysym_to_string(self.disp.keycode_to_keysym(event.detail, 0))
+    return ''.join(mod + '+' for mod in mods) + (char or '?')
 
 
 def replay(self):
-    for e in events:
-        self.inkscape.send_event(e, propagate=True)
+    for evt in self.events:
+        self.forward(evt)
 
-    self.disp.flush()
-    self.disp.sync()
 
 def normal_mode(self, event, char):
-    events.append(event)
-
-    if event.type == X.KeyPress and char:
-        pressed.add(event_to_string(self, event))
-        return 
-
+    # Modifier keys are never chord members. Forward them immediately.
+    if not char:
+        self.forward(event)
+        return
+    if event.type == X.KeyRelease and event.detail not in self.down:
+        self.forward(event)
+        return
+    self.events.append(event)
+    if event.type == X.KeyPress:
+        self.down.add(event.detail)
+        self.pressed.add(event_to_string(self, event, char))
+        return
     if event.type != X.KeyRelease:
-        return 
-
+        return
+    self.down.discard(event.detail)
+    if self.down:
+        return
     handled = False
-    if len(pressed) > 1:
-        paste_style(self, pressed)
+    if len(self.pressed) > 1 and self.pressed <= STYLE_KEYS:
+        paste_style(self, set(self.pressed))
         handled = True
-    elif len(pressed) == 1:
-        # Get the only element in pressed
-        ev = next(iter(pressed))
-        handled = handle_single_key(self, ev)
-        
-    # replay events to Inkscape if we couldn't handle them
+    elif len(self.pressed) == 1:
+        handled = handle_single_key(self, next(iter(self.pressed)))
     if not handled:
         replay(self)
-
-    events.clear()
-    pressed.clear()
+    self.events.clear()
+    self.pressed.clear()
 
 def handle_single_key(self, ev):
-    if ev == 't':
+    if ev in (config['style_leader'], XK.keysym_to_string(XK.string_to_keysym(config['style_leader']))):
+        self.style_keys.clear()
+        self.style_deadline = time.monotonic() + float(config['style_timeout'])
+        self.mode = sequence_mode
+    elif ev == 't':
         # Vim mode
         open_vim(self, compile_latex=False)
     elif ev == 'Shift+t':
@@ -72,13 +68,13 @@ def handle_single_key(self, ev):
         open_vim(self, compile_latex=True)
     elif ev == 'a':
         # Add objects mode
-        self.mode = styles.object_mode
+        styles.choose_saved('object', self)
     elif ev == 'Shift+a':
         # Save objects mode
         styles.save_object_mode(self)
     elif ev == 's':
         # Apply style mode
-        self.mode = styles.style_mode
+        styles.choose_saved('style', self)
     elif ev == 'Shift+s':
         # Save style mode
         styles.save_style_mode(self)
@@ -97,7 +93,7 @@ def handle_single_key(self, ev):
     elif ev == 'Shift+z':
         # Delete
         self.press('Delete')
-    elif ev == '`':
+    elif ev in ('`', config['toggle_key']):
         # Disabled mode
         self.press('t')
         self.mode = text.text_mode
@@ -105,6 +101,45 @@ def handle_single_key(self, ev):
         # Not handled
         return False
     return True
+
+def finish_sequence(self, apply=True):
+    combination = set(self.style_keys)
+    self.style_keys.clear()
+    self.style_deadline = None
+    self.mode = normal_mode
+    if apply and combination:
+        paste_style(self, combination)
+
+
+def expire_sequence(self):
+    if self.style_deadline is not None and time.monotonic() >= self.style_deadline:
+        finish_sequence(self)
+
+
+def sequence_mode(self, event, char):
+    # Process on release, with a fresh timeout for every sequential key.
+    # While a key is held, do not apply a partially entered sequence.
+    if event.type == X.KeyPress:
+        self.style_deadline = None
+        return
+    if event.type != X.KeyRelease:
+        return
+    if char == 'Escape':
+        finish_sequence(self, apply=False)
+    elif char == 'Return':
+        finish_sequence(self)
+    elif char in STYLE_KEYS and not event.state & (X.ControlMask | X.Mod1Mask | X.Mod4Mask):
+        self.style_keys.add(char)
+        self.style_deadline = time.monotonic() + float(config['style_timeout'])
+    elif char == 'BackSpace':
+        self.style_keys.clear()
+        self.style_deadline = time.monotonic() + float(config['style_timeout'])
+    elif not char:
+        self.style_deadline = time.monotonic() + float(config['style_timeout'])
+    else:
+        # An invalid sequence never changes the selection's style.
+        finish_sequence(self, apply=False)
+
 
 def paste_style(self, combination):
     """
@@ -180,9 +215,8 @@ def paste_style(self, combination):
     # Later on, we'll write this svg to the clipboard, and send Ctrl+Shift+V to
     # Inkscape, to paste this style.
 
-    svg = '''
-          <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-          <svg>
+    svg = '''<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+          <svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape">
           '''
     # If a marker is applied, add its definition to the clipboard
     # Arrow styles stolen from tikz

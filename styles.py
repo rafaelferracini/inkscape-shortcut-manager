@@ -1,117 +1,73 @@
 from pathlib import Path
-from time import sleep
-import os
+import xml.etree.ElementTree as ET
 from Xlib import X
 
-from clipboard import copy, get
+from clipboard import copy, get_after_copy
 from constants import TARGET
 from config import config, CONFIG_PATH
 from rofi import rofi
-import normal
 
-pressed = []
 
 def create_if_not_exists(directory):
-    if not directory.exists():
-        directory.mkdir(parents=True)
+    directory.mkdir(parents=True, exist_ok=True)
     return directory
 
-data_dirs = {
-    'style': create_if_not_exists(CONFIG_PATH / 'styles'),
-    'object': create_if_not_exists(CONFIG_PATH / 'objects'),
-}
 
-rofi_theme_params = ['-theme', config['rofi_theme']] if ('rofi_theme' in config and config['rofi_theme'] is not None) else []
-
-print(data_dirs)
-
-def check(type_, self, name):
-    files = list(data_dirs[type_].iterdir())
-    names = [f.stem for f in files]
-
-    filtered = list(i for i, n in enumerate(names) if n.startswith(name))
-
-    if len(filtered) == 0:
-        pressed.clear()
-        return back_to_normal(self)
-
-    if len(filtered) == 1:
-        index = filtered[0]
-        copy(files[index].read_text(), target=TARGET)
-        if type_ == 'style':
-            self.press('v', X.ShiftMask | X.ControlMask)
-        else:
-            self.press('v', X.ControlMask)
-
-        sleep(0.5) # Give the user some time when an object is added.
-        return back_to_normal(self)
+data_dirs = {kind: create_if_not_exists(CONFIG_PATH / folder)
+             for kind, folder in (('style', 'styles'), ('object', 'objects'))}
+rofi_theme_params = ['-theme', config['rofi_theme']] if config.get('rofi_theme') else []
 
 
-def back_to_normal(self):
-    self.mode = normal.normal_mode
-    pressed.clear()
+def saved_files(type_):
+    return sorted(p for p in data_dirs[type_].glob('*.svg') if p.is_file() and not p.name.startswith('.'))
 
-def paste_mode(type_, self, event, char):
-    print('paste mode')
-    if event.state & X.ControlMask:
-        # there are modifiers
-        # eg. X.ControlMask
-        # ~or X.ShiftMask~
+
+def choose_saved(type_, self):
+    """Choose an exact filename in a visible menu, including shared prefixes."""
+    files = saved_files(type_)
+    names = [p.stem for p in files]
+    prompt = 'Inserir objeto' if type_ == 'object' else 'Aplicar estilo'
+    if not files:
+        rofi(prompt + ' — nenhum salvo (Shift+A / Shift+S)', [], rofi_theme_params + ['-no-custom'])
         return
-
-    if not char:
+    status, index, name = rofi(prompt, names, rofi_theme_params + ['-no-custom'])
+    if status != 0 or index < 0 or name not in names:
         return
+    svg = files[names.index(name)].read_text(encoding='utf-8')
+    root = ET.fromstring(svg)
+    if root.tag.rsplit('}', 1)[-1] != 'svg':
+        raise ValueError('O objeto salvo não contém SVG.')
+    copy(svg, target=TARGET)
+    self.press('v', X.ControlMask | (X.ShiftMask if type_ == 'style' else 0))
 
-    if event.type != X.KeyRelease:
-        return
 
-    if char == 'Escape':
-        if len(pressed) == 0:
-            return back_to_normal(self)
-        else:
-            pressed.clear()
-    else:
-        pressed.append(char)
-        return check(type_, self, ''.join(pressed))
+def valid_name(name):
+    return bool(name.strip()) and name not in ('.', '..') and not any(
+        c in name for c in ('/', '\\', '\0', '\n', '\r'))
 
 
 def save_mode(type_, self):
-    self.press('c', X.ControlMask)
-    svg = get(TARGET)
-    if not 'svg' in svg:
+    svg = get_after_copy(self, TARGET)
+    root = ET.fromstring(svg)
+    if root.tag.rsplit('}', 1)[-1] != 'svg':
+        raise ValueError('A seleção não contém SVG.')
+    names = [p.stem for p in saved_files(type_)]
+    status, _, name = rofi('Salvar como', names, rofi_theme_params, fuzzy=False)
+    if status != 0 or not valid_name(name):
         return
-
-    directory = data_dirs[type_]
-    files = list(directory.iterdir())
-    names = [f.stem for f in files]
-    _, index, name = rofi(
-        'Save as',
-        names,
-        rofi_theme_params,
-        fuzzy=False
-    )
-
-    if index != -1:
-        # File exists
-        _, index, yn = rofi(
-            f'Overwrite {name}?',
-            ['y', 'n'],
-            rofi_theme_params + ['-auto-select'],
-            fuzzy=False
-        )
-        if yn == 'n':
+    path = data_dirs[type_] / f'{name}.svg'
+    if path.is_symlink():
+        raise ValueError('O destino é um link simbólico.')
+    if path.exists():
+        status, _, answer = rofi(f'Sobrescrever {name}?', ['n', 'y'], rofi_theme_params, fuzzy=False)
+        if status != 0 or answer != 'y':
             return
+    path.write_text(svg, encoding='utf-8')
 
-    (directory / f'{name}.svg').write_text(get(TARGET))
-
-def style_mode(self, event, char):
-    paste_mode('style', self, event, char)
-
-def object_mode(self, event, char):
-    paste_mode('object', self, event, char)
 
 def save_style_mode(self):
     save_mode('style', self)
+
 
 def save_object_mode(self):
     save_mode('object', self)
