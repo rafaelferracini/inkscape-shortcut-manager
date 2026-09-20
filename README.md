@@ -1,62 +1,64 @@
 # Inkscape Shortcut Manager
 
-Desenhe figuras matemáticas no Inkscape com estilos combináveis, objetos reutilizáveis e texto ou fórmulas escritos no seu editor.
+[Português (Brasil)](/README.pt-BR.md)
 
-Este fork adapta o [Inkscape Shortcut Manager de Gilles Castel](https://github.com/gillescastel/inkscape-shortcut-manager) para um fluxo com **Hyprland, XWayland e Obsidian**. A principal mudança na interação é o uso de uma tecla *leader*: pressione **Espaço** e digite os componentes de um estilo em sequência, sem precisar segurar várias teclas ao mesmo tempo.
+Draw mathematical figures in Inkscape with composable styles, reusable objects, and text or formulas written in your editor.
 
-O projeto é inspirado no artigo **[How I draw figures for my mathematical lecture notes using Inkscape](https://castel.dev/post/lecture-notes-2/)**, de Gilles Castel. O artigo apresenta a ideia original de combinar atalhos, estilos e objetos para acompanhar a produção de notas de aula.
+This fork adapts [Gilles Castel's Inkscape Shortcut Manager](https://github.com/gillescastel/inkscape-shortcut-manager) for a workflow using **Hyprland, XWayland, and Obsidian**. The main interaction change is a *leader* key: press **Space** and type the components of a style in sequence, without holding several keys at once.
 
-## Comece por aqui
+The project is inspired by Gilles Castel's article **[How I draw figures for my mathematical lecture notes using Inkscape](https://castel.dev/post/lecture-notes-2/)**. The article introduces the original idea of combining shortcuts, styles, and objects to keep up with taking lecture notes.
 
-Depois de instalar as dependências, abra uma figura pelo lançador:
+## Quick start
+
+After installing the dependencies, open a figure with the launcher:
 
 ```sh
-./inkscape-managed /caminho/da/figura.svg
+./inkscape-managed /path/to/figure.svg
 ```
 
-No Inkscape:
+In Inkscape:
 
-1. Desenhe e selecione um objeto.
-2. Pressione **Espaço**, solte, depois **d**, solte, depois **a**.
-3. Pressione **Enter** ou aguarde **1 segundo**: o objeto recebe um traço pontilhado com seta.
-4. Pressione **a** para pesquisar e inserir um objeto salvo, ou **s** para aplicar um estilo salvo.
+1. Draw and select an object.
+2. Press **Space**, release it, then **d**, release it, then **a**.
+3. Press **Enter** or wait **1 second**: the object receives a dotted stroke with an arrowhead.
+4. Press **a** to search for and insert a saved object, or **s** to apply a saved style.
 
-O gerenciador inicia automaticamente pelo lançador. Não é necessário abrir outro terminal nem adicioná-lo ao autostart para esse fluxo.
+The launcher starts the manager automatically. You do not need another terminal or an autostart entry for this workflow.
 
-## Compatibilidade e instalação
+## Compatibility and installation
 
-O gerenciador captura teclas de janelas **X11**. Em uma sessão Wayland, o Inkscape precisa rodar por **XWayland**; não há suporte à captura de janelas Wayland nativas.
+The manager intercepts keyboard events from **X11** windows. In a Wayland session, Inkscape must run through **XWayland**; intercepting native Wayland windows is not supported.
 
-O lançador configura `GDK_BACKEND=x11` somente para o Inkscape e usa `--app-id-tag=shortcutmanager`, evitando reutilizar uma instância Wayland já aberta. O restante do desktop continua usando seu backend habitual.
+The launcher sets `GDK_BACKEND=x11` only for Inkscape and uses `--app-id-tag=shortcutmanager` to avoid reusing an existing Wayland instance. The rest of the desktop keeps using its usual backend.
 
-Ambiente em que esta revisão foi validada: CachyOS, Hyprland 0.56.2, Inkscape 1.4.4 e Python 3.14. Outros ambientes X11 podem funcionar, mas a regra de workspace é específica do Hyprland.
+This revision was validated on CachyOS, Hyprland 0.56.2, Inkscape 1.4.4, and Python 3.14. Other X11 environments may work, but the workspace rule is specific to Hyprland.
 
-### Dependências
+### Dependencies
 
-| Recurso | Dependências |
+| Feature | Dependencies |
 |---|---|
-| Atalhos, estilos e objetos | Python 3, `python-xlib`, Inkscape, `xclip` e Rofi |
-| Uso em uma sessão Wayland | XWayland disponível no compositor |
-| Editor de texto padrão | Kitty e Neovim; ambos podem ser substituídos na configuração |
-| Fórmulas renderizadas | `pdflatex`, `pdf2svg` e os pacotes LaTeX usados pelo template |
+| Shortcuts, styles, and objects | Python 3, `python-xlib`, Inkscape, `xclip`, and Rofi |
+| Use in a Wayland session | XWayland available in the compositor |
+| Default text editor | Kitty and Neovim; both can be replaced in the configuration |
+| Rendered formulas | `pdflatex`, `pdf2svg`, and the LaTeX packages used by the template |
 
-Em Arch Linux e CachyOS, as dependências principais podem ser instaladas com:
+On Arch Linux and CachyOS, install the main dependencies with:
 
 ```sh
 sudo pacman -S --needed python python-xlib inkscape xorg-xwayland xclip rofi
 ```
 
-Para usar o editor padrão e converter PDF em SVG:
+To use the default editor and convert PDF to SVG:
 
 ```sh
 sudo pacman -S --needed kitty neovim pdf2svg
 ```
 
-Para `Shift+t`, instale também uma distribuição LaTeX com `pdflatex`. O template padrão usa `standalone`, `inputenc`, `fontenc`, `textcomp`, `amsmath` e `amssymb`. Essas dependências de LaTeX não são necessárias para desenhar, aplicar estilos ou reutilizar objetos.
+For `Shift+t`, also install a LaTeX distribution with `pdflatex`. The default template uses `standalone`, `inputenc`, `fontenc`, `textcomp`, `amsmath`, and `amssymb`. These LaTeX dependencies are not required for drawing, applying styles, or reusing objects.
 
-### Obter e executar o projeto
+### Getting and running the project
 
-Clone seu fork ou baixe o repositório e entre na pasta `inkscape-shortcut-manager`. Dentro dela:
+Clone your fork or download the repository and enter the `inkscape-shortcut-manager` directory. From there:
 
 ```sh
 chmod +x inkscape-managed
@@ -64,103 +66,103 @@ python3 main.py --doctor
 ./inkscape-managed
 ```
 
-Sem um caminho de arquivo, o lançador abre o Inkscape para criar um documento. Para editar uma figura existente, passe o caminho, entre aspas se houver espaços:
+Without a file path, the launcher opens Inkscape to create a document. To edit an existing figure, provide its path, using quotes if it contains spaces:
 
 ```sh
-./inkscape-managed "/caminho/das figuras/campo-eletrico.svg"
+./inkscape-managed "/path/to figures/electric-field.svg"
 ```
 
-O script `inkscape-managed` usa `/usr/bin/python3`. A biblioteca `Xlib` precisa estar disponível nesse interpretador. Para usar um ambiente virtual, execute `python launch.py figura.svg` com o Python desse ambiente.
+The `inkscape-managed` script uses `/usr/bin/python3`. The `Xlib` library must be available to that interpreter. To use a virtual environment, run `python launch.py figure.svg` with that environment's Python.
 
-## Estilos com a tecla leader
+## Styles with the leader key
 
-**Espaço** inicia uma sequência de estilo. A partir daí, digite as letras desejadas **uma de cada vez, em minúsculas**.
+**Space** starts a style sequence. Then type the letters you want **one at a time, in lowercase**.
 
-- O prazo padrão é de **1 segundo**, renovado ao soltar cada letra.
-- **Enter** aplica a combinação imediatamente.
-- **Esc** cancela sem aplicar.
-- **Backspace** limpa a combinação para começar novamente.
-- Ao mudar o foco para outra janela, a sequência é cancelada.
+- The default timeout is **1 second**, renewed when you release each letter.
+- **Enter** applies the combination immediately.
+- **Esc** cancels without applying it.
+- **Backspace** clears the combination so you can start again.
+- Switching focus to another window cancels the sequence.
 
-Por exemplo, `Espaço → g → d → a → Enter` cria uma seta pontilhada com traço grosso. As setas `→` nesta documentação indicam a ordem das teclas; não devem ser digitadas.
+For example, `Space → g → d → a → Enter` creates a thick dotted arrow. The `→` symbols in this documentation indicate the order of the keys; do not type them.
 
-### Guia visual
+### Visual guide
 
-![Guia dos estilos: colunas S, D, E, G, GD, GE, H, HD e HE mostram contornos de diferentes espessuras e padrões; linhas F, W, B, A e X mostram preenchimentos e setas.](docs/images/atalhos-estilos.png)
+![Style guide: columns S, D, E, G, GD, GE, H, HD, and HE show strokes with different widths and patterns; rows F, W, B, A, and X show fills and arrowheads.](docs/images/atalhos-estilos.png)
 
-As letras maiúsculas da imagem são **rótulos**, não comandos com Shift. Por exemplo, a coluna **GD** corresponde a `Espaço → g → d`; a linha **F** nessa coluna acrescenta `f` à sequência. As linhas **A** e **X** representam setas, apesar de estarem agrupadas na lateral junto dos preenchimentos.
+The uppercase letters in the image are **labels**, not Shift commands. For example, column **GD** corresponds to `Space → g → d`; row **F** in that column adds `f` to the sequence. Rows **A** and **X** represent arrowheads, even though they are grouped alongside the fills on the left.
 
-| Letra após Espaço | Efeito |
+| Letter after Space | Effect |
 |---|---|
-| `s` | Contorno preto fino e contínuo |
-| `d` | Contorno pontilhado |
-| `e` | Contorno tracejado |
-| `g` | Contorno grosso |
-| `h` | Contorno muito grosso |
-| `a` | Seta no final do caminho |
-| `x` | Setas nas duas extremidades |
-| `f` | Preenchimento preto com 12% de opacidade, visualmente cinza sobre branco |
-| `w` | Preenchimento branco |
-| `b` | Preenchimento preto |
+| `s` | Thin, solid black stroke |
+| `d` | Dotted stroke |
+| `e` | Dashed stroke |
+| `g` | Thick stroke |
+| `h` | Very thick stroke |
+| `a` | Arrowhead at the end of the path |
+| `x` | Arrowheads at both ends |
+| `f` | Black fill at 12% opacity, appearing gray over white |
+| `w` | White fill |
+| `b` | Black fill |
 
-### Exemplos de combinações
+### Combination examples
 
-| Sequência | Resultado |
+| Sequence | Result |
 |---|---|
-| `Espaço → s → Enter` | Contorno fino, sem preenchimento |
-| `Espaço → d → a → Enter` | Seta pontilhada |
-| `Espaço → g → e → x → Enter` | Linha grossa tracejada, com setas nas duas pontas |
-| `Espaço → f → s → Enter` | Preenchimento cinza e contorno fino |
-| `Espaço → f → d → Enter` | Preenchimento cinza e contorno pontilhado |
-| `Espaço → w → h → Enter` | Preenchimento branco e contorno muito grosso |
-| `Espaço → b → Enter` | Preenchimento preto, sem contorno |
+| `Space → s → Enter` | Thin stroke, no fill |
+| `Space → d → a → Enter` | Dotted arrow |
+| `Space → g → e → x → Enter` | Thick dashed line with arrowheads at both ends |
+| `Space → f → s → Enter` | Gray fill and thin stroke |
+| `Space → f → d → Enter` | Gray fill and dotted stroke |
+| `Space → w → h → Enter` | White fill and very thick stroke |
+| `Space → b → Enter` | Black fill, no stroke |
 
-Os estilos gerados redefinem preenchimento, contorno, padrões de traço e marcadores; não são apenas alterações isoladas de uma propriedade. Sem uma letra de preenchimento, o preenchimento é removido. Sem uma letra de contorno, o contorno é removido. Na implementação atual, `f`, `w` e `b` também removem as setas: use preenchimentos para formas e `a`/`x` para caminhos com setas.
+Generated styles reset the fill, stroke, dash pattern, and markers; they do not just change a single property in isolation. Without a fill letter, the fill is removed. Without a stroke letter, the stroke is removed. In the current implementation, `f`, `w`, and `b` also remove arrowheads: use fills for shapes and `a`/`x` for paths with arrowheads.
 
-Os acordes simultâneos do projeto original continuam disponíveis: segure, por exemplo, `d` e `a`, e solte ambas para aplicar. O modo leader é a alternativa para digitar com mais conforto.
+The original project's simultaneous key chords are still available: for example, hold `d` and `a`, then release both to apply the style. Leader mode provides an alternative for more comfortable typing.
 
-## Atalhos do modo normal
+## Normal-mode shortcuts
 
-Estes atalhos são usados **sem pressionar Espaço antes**. Uma mesma letra pode ter outro significado dentro de uma sequência de estilo.
+Use these shortcuts **without pressing Space first**. The same letter may have a different meaning inside a style sequence.
 
-| Tecla | Ação |
+| Key | Action |
 |---|---|
-| `Espaço` | Iniciar uma sequência de estilo |
-| `a` | Abrir o menu de objetos salvos |
-| `s` | Abrir o menu de estilos salvos |
-| `Shift+a` | Salvar os objetos selecionados |
-| `Shift+s` | Salvar o estilo da seleção |
-| `w` | Ativar a ferramenta Lápis |
-| `f` | Ativar a ferramenta Bézier |
-| `x` | Alternar o encaixe (*snapping*) |
-| `z` | Desfazer |
-| `Shift+z` | Excluir a seleção |
-| `t` | Abrir o editor e inserir o conteúdo como texto |
-| `Shift+t` | Abrir o editor, compilar LaTeX e inserir o SVG renderizado |
-| `F12` | Entrar ou sair do modo de texto direto |
+| `Space` | Start a style sequence |
+| `a` | Open the saved objects menu |
+| `s` | Open the saved styles menu |
+| `Shift+a` | Save the selected objects |
+| `Shift+s` | Save the selection's style |
+| `w` | Activate the Pencil tool |
+| `f` | Activate the Bézier tool |
+| `x` | Toggle snapping |
+| `z` | Undo |
+| `Shift+z` | Delete the selection |
+| `t` | Open the editor and insert its contents as text |
+| `Shift+t` | Open the editor, compile LaTeX, and insert the rendered SVG |
+| `F12` | Enter or leave direct text mode |
 
-Os atalhos com Ctrl, Alt, Super e AltGr ficam disponíveis para o Inkscape e o compositor. O gerenciador atua na janela inteira, inclusive sobre campos de texto: use **F12** antes de digitar neles. Ao entrar nesse modo, ele também ativa a ferramenta Texto; ao sair, envia Esc. Uma mudança de foco para outra janela restaura o modo normal.
+Shortcuts using Ctrl, Alt, Super, and AltGr remain available to Inkscape and the compositor. The manager operates across the entire window, including text fields: use **F12** before typing into them. Entering this mode also activates the Text tool; leaving it sends Esc. Switching focus to another window restores normal mode.
 
-O acento grave também alterna o modo de texto, mas pode funcionar como tecla morta em layouts como ABNT2. **F12** evita essa dependência do layout.
+The backtick key also toggles text mode, but it may act as a dead key on layouts such as ABNT2. **F12** avoids this layout dependency.
 
-## Salvar e reutilizar estilos e objetos
+## Saving and reusing styles and objects
 
-### Objetos
+### Objects
 
-1. Selecione os elementos que deseja reutilizar, como um conjunto de eixos.
-2. Pressione **Shift+a**, informe um nome no Rofi e confirme.
-3. Para inserir outra cópia, pressione **a**.
-4. Pesquise o nome, escolha a entrada com as setas e confirme com **Enter**.
+1. Select the elements you want to reuse, such as a set of axes.
+2. Press **Shift+a**, enter a name in Rofi, and confirm.
+3. To insert another copy, press **a**.
+4. Search for the name, select an entry with the arrow keys, and confirm with **Enter**.
 
-Nomes como `eixo_xy` e `eixo_xyz` podem coexistir. O menu confirma a entrada escolhida, sem inserir automaticamente um objeto por prefixo. **Esc** fecha o menu sem inserir nada.
+Names such as `eixo_xy` and `eixo_xyz` can coexist. The menu confirms the selected entry rather than automatically inserting an object based on its prefix. **Esc** closes the menu without inserting anything.
 
-### Estilos
+### Styles
 
-Selecione um objeto com a aparência desejada e pressione **Shift+s** para salvar seu estilo. Depois, selecione outro objeto, pressione **s** e escolha o estilo no menu. A operação aplica a aparência à seleção, sem inserir uma cópia do objeto original.
+Select an object with the appearance you want and press **Shift+s** to save its style. Then select another object, press **s**, and choose the style from the menu. This applies the appearance to the selection without inserting a copy of the original object.
 
-Salvar com um nome existente solicita confirmação antes de sobrescrever. Arquivos ocultos, como `.svg`, são ignorados nos menus.
+Saving under an existing name requires confirmation before overwriting. Hidden files, such as `.svg`, are ignored in the menus.
 
-Os dados ficam em:
+Data is stored in:
 
 ```text
 ~/.config/inkscape-shortcut-manager/
@@ -169,57 +171,57 @@ Os dados ficam em:
 │   ├── eixo_xy.svg
 │   └── eixo_xyz.svg
 ├── styles/
-│   └── meu_estilo.svg
+│   └── my_style.svg
 └── manager.log
 ```
 
-Os nomes acima são exemplos de itens criados pelo usuário. Há outros objetos e estilos de exemplo em [`examples/objects`](examples/objects) e [`examples/styles`](examples/styles); copie apenas os arquivos desejados para as pastas correspondentes da configuração, preservando seus arquivos existentes.
+The names above are examples of user-created items. Other sample objects and styles are available in [`examples/objects`](examples/objects) and [`examples/styles`](examples/styles); copy only the files you want into the corresponding configuration directories, preserving your existing files.
 
-Aplicar estilos, copiar seleções e inserir objetos usa e substitui o conteúdo da área de transferência.
+Applying styles, copying selections, and inserting objects uses and replaces the clipboard contents.
 
-## Texto e fórmulas LaTeX
+## Text and LaTeX formulas
 
-**`t` — texto editável:** abre Neovim dentro do Kitty. Escreva, salve e feche o editor com `:wq`; o conteúdo será inserido como texto no Inkscape. Comandos LaTeX permanecem literais nesse modo.
+**`t` — editable text:** opens Neovim inside Kitty. Write your content, save, and close the editor with `:wq`; the content is inserted as text in Inkscape. LaTeX commands remain literal text in this mode.
 
-**`Shift+t` — fórmula renderizada:** abre o mesmo editor e compila o conteúdo com `pdflatex`, convertendo o PDF em SVG com `pdf2svg`. Por exemplo:
+**`Shift+t` — rendered formula:** opens the same editor and compiles its contents with `pdflatex`, converting the PDF to SVG with `pdf2svg`. For example:
 
 ```latex
 $\int_0^1 x^2\,dx = \frac{1}{3}$
 ```
 
-O arquivo começa com `$$` para facilitar a entrada de uma expressão. Deixá-lo vazio ou sem alterar esse conteúdo cancela a inserção. A versão renderizada entra como desenho SVG, não como um campo de edição LaTeX.
+The file starts with `$$` to make entering an expression easier. Leaving it empty or keeping that initial content unchanged cancels insertion. The rendered version is inserted as an SVG drawing, not as an editable LaTeX field.
 
-## Integração com Obsidian
+## Obsidian integration
 
-O exemplo [`examples/inkscape-snippets.js`](examples/inkscape-snippets.js) integra a criação e a reabertura de figuras ao **LaTeX Suite**, no Obsidian Desktop com um vault local.
+The [`examples/inkscape-snippets.js`](examples/inkscape-snippets.js) example integrates figure creation and reopening with **LaTeX Suite** in Obsidian Desktop, using a local vault.
 
-1. Copie o exemplo para a pasta de snippets que você usa no LaTeX Suite.
-2. **Substitua a constante `INKSCAPE` pelo caminho absoluto do seu lançador**. O arquivo de exemplo contém o caminho da instalação em que o fork foi desenvolvido.
-3. Configure o LaTeX Suite para carregar essa pasta e recarregue os snippets ou reinicie o Obsidian.
+1. Copy the example into the snippets directory you use with LaTeX Suite.
+2. **Replace the `INKSCAPE` constant with the absolute path to your launcher**. The example file contains the path of the installation where this fork was developed.
+3. Configure LaTeX Suite to load that directory, then reload the snippets or restart Obsidian.
 
-Exemplo de caminho a adaptar:
+Example path to customize:
 
 ```javascript
-const INKSCAPE = "/home/SEU_USUARIO/scripts/inkscape-shortcut-manager/inkscape-managed";
+const INKSCAPE = "/home/YOUR_USERNAME/scripts/inkscape-shortcut-manager/inkscape-managed";
 ```
 
-Fora de uma fórmula, digite:
+Outside a formula, type:
 
 ```text
-figure: campo eletrico
+figure: electric field
 ```
 
-Pressione **Tab**. O snippet cria `figures/campo-eletrico.svg` na raiz do vault, abre o Inkscape pelo lançador e insere:
+Press **Tab**. The snippet creates `figures/electric-field.svg` at the vault root, opens Inkscape through the launcher, and inserts:
 
 ```markdown
-![[figures/campo-eletrico.svg]]
+![[figures/electric-field.svg]]
 ```
 
-Para editar novamente, selecione a incorporação inteira e pressione **Ctrl+Alt+i**. Se o arquivo já existir, ele é reaberto sem sobrescrever seu conteúdo. Salve no Inkscape para atualizar o SVG usado pela nota.
+To edit it again, select the entire embed and press **Ctrl+Alt+i**. If the file already exists, it is reopened without overwriting its contents. Save in Inkscape to update the SVG used by the note.
 
-## Abrir o Inkscape em outro workspace
+## Opening Inkscape on another workspace
 
-Em uma configuração **Lua do Hyprland**, adicione o conteúdo de [`examples/hyprland-inkscape.lua`](examples/hyprland-inkscape.lua) a um arquivo carregado pela sua configuração:
+In a **Hyprland Lua configuration**, add the contents of [`examples/hyprland-inkscape.lua`](examples/hyprland-inkscape.lua) to a file loaded by your configuration:
 
 ```lua
 hl.window_rule({
@@ -229,15 +231,15 @@ hl.window_rule({
 })
 ```
 
-Recarregue a configuração com `hyprctl reload`. Para usar o workspace 6, troque `"5"` por `"6"`. A regra corresponde às janelas do Inkscape, inclusive às abertas fora deste lançador.
+Reload the configuration with `hyprctl reload`. To use workspace 6, change `"5"` to `"6"`. The rule matches Inkscape windows, including those opened outside this launcher.
 
-**Essa configuração é opcional e não é instalada automaticamente ao clonar o fork.** Ela define o destino de novas janelas; as já abertas precisam ser movidas ou reabertas. Consulte a [documentação de regras de janelas do Hyprland](https://wiki.hypr.land/Configuring/Basics/Window-Rules/) para adaptar a regra à sua versão.
+**This configuration is optional and is not installed automatically when you clone the fork.** It sets the destination for new windows; existing windows must be moved or reopened. See the [Hyprland window rules documentation](https://wiki.hypr.land/Configuring/Basics/Window-Rules/) to adapt the rule to your version.
 
-## Configuração pessoal
+## Personal configuration
 
-Crie `~/.config/inkscape-shortcut-manager/config.py`. Quando `XDG_CONFIG_HOME` estiver definido, a pasta será `$XDG_CONFIG_HOME/inkscape-shortcut-manager`.
+Create `~/.config/inkscape-shortcut-manager/config.py`. When `XDG_CONFIG_HOME` is set, the directory is `$XDG_CONFIG_HOME/inkscape-shortcut-manager`.
 
-As opções pessoais são mescladas com os padrões de [`config.py`](config.py). Por exemplo:
+Personal settings are merged with the defaults in [`config.py`](config.py). For example:
 
 ```python
 import subprocess
@@ -249,7 +251,7 @@ def open_editor(filename):
 
 config = {
     "style_leader": "space",
-    "style_timeout": 1.5,  # segundos entre teclas; padrão: 1.0
+    "style_timeout": 1.5,  # seconds between keys; default: 1.0
     "toggle_key": "F12",
     "rofi_theme": None,
     "font": "monospace",
@@ -258,63 +260,63 @@ config = {
 }
 ```
 
-Use nomes de teclas X11 em `style_leader` e `toggle_key`. A função `open_editor` deve aguardar o fechamento do editor. Também é possível substituir `latex_document`, uma função que recebe o conteúdo digitado e retorna o documento LaTeX completo. O arquivo [`examples/config.py`](examples/config.py) preserva um exemplo histórico do projeto original, com urxvt/Vim; o exemplo acima corresponde aos padrões deste fork.
+Use X11 key names for `style_leader` and `toggle_key`. The `open_editor` function must wait for the editor to close. You can also replace `latex_document`, a function that takes the typed content and returns the complete LaTeX document. The [`examples/config.py`](examples/config.py) file preserves a historical example from the original project using urxvt/Vim; the example above reflects this fork's defaults.
 
-Alterações no código ou na configuração exigem **reiniciar o processo do gerenciador**. Fechar só o Inkscape não encerra esse processo, e abrir o lançador novamente não recarrega uma instância já ativa. Encerre o processo `main.py` desta instalação antes de executar o lançador novamente. Uma sessão iniciada no terminal pode ser encerrada com Ctrl+C.
+Changes to the code or configuration require **restarting the manager process**. Closing Inkscape alone does not stop that process, and running the launcher again does not reload an already active instance. Stop this installation's `main.py` process before running the launcher again. A session started in a terminal can be stopped with Ctrl+C.
 
-## O que mudou em relação ao original
+## Changes from the original project
 
-| Área | Projeto original | Este fork |
+| Area | Original project | This fork |
 |---|---|---|
-| Combinação de estilos | Teclas pressionadas simultaneamente | Leader com sequência, timeout configurável, Enter e Esc; acordes preservados |
-| Objetos e estilos salvos | Digitação de nomes/prefixos capturada pelo gerenciador | Menus pesquisáveis no Rofi com seleção explícita |
-| Abertura em Wayland | Dependência de X11 sem um lançador específico | Lançador que abre o Inkscape via XWayland com identificação própria |
-| Inicialização | Execução manual de `main.py` | Inicialização pelo lançador e uma instância por display |
-| Editor padrão | urxvt e Vim | Kitty e Neovim, configuráveis |
-| Modo de texto | Alternância pelo acento grave | F12 como alternativa adequada a layouts com teclas mortas |
-| Obsidian e Hyprland | Fluxo original voltado às notas em LaTeX | Exemplo de snippet para LaTeX Suite e regra opcional de workspace |
+| Combining styles | Simultaneous key presses | Leader sequences, configurable timeout, Enter, and Esc; chords preserved |
+| Saved objects and styles | Names/prefixes typed directly into the manager | Searchable Rofi menus with explicit selection |
+| Launching on Wayland | X11 dependency without a dedicated launcher | Launcher that opens Inkscape through XWayland with its own application ID |
+| Startup | Manual execution of `main.py` | Launcher-managed startup and one instance per display |
+| Default editor | urxvt and Vim | Configurable Kitty and Neovim |
+| Text mode | Toggled with the backtick key | F12 as an alternative for layouts with dead keys |
+| Obsidian and Hyprland | Original workflow focused on LaTeX notes | Example LaTeX Suite snippet and optional workspace rule |
 
-Também foram corrigidos problemas de implementação:
+Implementation issues were also fixed:
 
-- **Detecção de janelas:** procura periódica de janelas existentes e novas, sem depender de `WM_CLASS` já estar disponível em `CreateNotify`.
-- **Múltiplos documentos:** estado de teclas separado por janela e acesso à área de transferência serializado.
-- **Tratamento de teclas:** combinações desconhecidas são encaminhadas; acordes aguardam a liberação de todas as teclas.
-- **SVG e texto:** namespaces XML, posição da declaração XML e escape de caracteres como `<` e `&`.
-- **Área de transferência:** espera pela troca do proprietário da seleção antes de ler ou colar.
-- **Salvamento:** cancelamento respeitado, validação de nomes e confirmação de sobrescrita.
-- **LaTeX:** erros registrados, limite de tempo de execução e limpeza dos arquivos temporários.
-- **Diagnóstico:** comando `--doctor`, log de execução, testes de regressão e teste opcional com janela real.
+- **Window detection:** periodically checks existing and new windows without relying on `WM_CLASS` already being available at `CreateNotify`.
+- **Multiple documents:** separate keyboard state for each window and serialized clipboard access.
+- **Keyboard handling:** unknown combinations are forwarded; chords wait until all keys are released.
+- **SVG and text:** XML namespaces, XML declaration placement, and escaping of characters such as `<` and `&`.
+- **Clipboard:** waits for selection ownership to change before reading or pasting.
+- **Saving:** respects cancellation, validates names, and confirms overwrites.
+- **LaTeX:** logs errors, limits execution time, and cleans up temporary files.
+- **Diagnostics:** a `--doctor` command, runtime log, regression tests, and an optional test with a real window.
 
-## Diagnóstico e testes
+## Diagnostics and tests
 
-Dentro da pasta do projeto:
+From the project directory:
 
 ```sh
 python3 main.py --doctor
 ```
 
-O comando lista dependências, configuração, conexão X11/XWayland e quantidade de janelas compatíveis. O log do lançador fica em `~/.config/inkscape-shortcut-manager/manager.log`, respeitando `XDG_CONFIG_HOME` quando definido.
+This command lists dependencies, configuration, the X11/XWayland connection, and the number of compatible windows. The launcher's log is stored at `~/.config/inkscape-shortcut-manager/manager.log`, respecting `XDG_CONFIG_HOME` when set.
 
-| Sintoma | O que verificar |
+| Symptom | What to check |
 |---|---|
-| Nenhum atalho funciona | Reabra a figura pelo `inkscape-managed`; uma janela Wayland nativa não é capturada. |
-| O estilo não aparece | Selecione um objeto, pressione Espaço e digite as letras antes do timeout; use Enter para confirmar. |
-| Digitar aciona ferramentas | Entre no modo de texto com F12 antes de preencher campos. |
-| Um objeto não está no menu | Confira a pasta `objects/`, a extensão `.svg` e se o arquivo não está oculto. |
-| Shift+a ou Shift+s não salva | Selecione os objetos antes; consulte o log se a cópia falhar. |
-| A fórmula não é inserida | Verifique `pdflatex`, `pdf2svg`, os pacotes do template e o erro registrado no log. |
-| Mudanças não fazem efeito | Reinicie o gerenciador; reabrir somente a figura não recarrega o código. |
+| No shortcuts work | Reopen the figure through `inkscape-managed`; native Wayland windows cannot be intercepted. |
+| The style does not appear | Select an object, press Space, and type the letters before the timeout; use Enter to confirm. |
+| Typing activates tools | Enter text mode with F12 before filling in fields. |
+| An object is missing from the menu | Check the `objects/` directory, the `.svg` extension, and whether the file is hidden. |
+| Shift+a or Shift+s does not save | Select the objects first; check the log if copying fails. |
+| The formula is not inserted | Check `pdflatex`, `pdf2svg`, the template's packages, and the error recorded in the log. |
+| Changes do not take effect | Restart the manager; reopening the figure alone does not reload the code. |
 
-Para executar a suíte de regressão:
+To run the regression suite:
 
 ```sh
 python3 -m unittest discover -s tests -v
 ```
 
-O teste [`tests/smoke_x11.py`](tests/smoke_x11.py) valida uma sequência de estilo, desfazer, cópia de SVG, workspace 5 e inserção de `eixo_xy` e `eixo_xyz` em uma figura temporária. Ele exige Hyprland, XWayland, `xdotool`, a regra de workspace instalada e esses dois objetos na configuração pessoal padrão. Não é um teste portátil para qualquer instalação: execute sem outro gerenciador ativo. Ele altera o foco e a área de transferência e usa Rofi em X11 para permitir a digitação automatizada.
+The [`tests/smoke_x11.py`](tests/smoke_x11.py) test validates a style sequence, undo, SVG copying, workspace 5, and insertion of `eixo_xy` and `eixo_xyz` into a temporary figure. It requires Hyprland, XWayland, `xdotool`, the installed workspace rule, and those two objects in the default personal configuration directory. It is not a portable test for every installation: run it without another manager instance active. It changes focus and clipboard contents and uses Rofi on X11 to allow automated typing.
 
-## Créditos e licença
+## Credits and license
 
-- **Gilles Castel:** autor do [projeto original](https://github.com/gillescastel/inkscape-shortcut-manager) e do artigo [How I draw figures for my mathematical lecture notes using Inkscape](https://castel.dev/post/lecture-notes-2/), referência para este fluxo de desenho.
-- **Projeto relacionado:** [Inkscape Figure Manager](https://github.com/gillescastel/inkscape-figures), também de Gilles Castel.
-- **Licença:** [MIT](LICENSE), com o aviso de copyright original preservado.
+- **Gilles Castel:** author of the [original project](https://github.com/gillescastel/inkscape-shortcut-manager) and the article [How I draw figures for my mathematical lecture notes using Inkscape](https://castel.dev/post/lecture-notes-2/), the reference for this drawing workflow.
+- **Related project:** [Inkscape Figure Manager](https://github.com/gillescastel/inkscape-figures), also by Gilles Castel.
+- **License:** [MIT](LICENSE), with the original copyright notice preserved.
